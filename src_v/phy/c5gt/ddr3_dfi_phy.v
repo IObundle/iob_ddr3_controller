@@ -41,8 +41,10 @@ module ddr3_dfi_phy
      input           clk_i
     ,input           clk_ddr_i   // 90 degree phase shifted version of clk_i
     ,input           rst_i
+ 
     ,input           cfg_valid_i
     ,input  [ 31:0]  cfg_i
+
     ,input  [ 14:0]  dfi_address_i
     ,input  [  2:0]  dfi_bank_i
     ,input           dfi_cas_n_i
@@ -61,18 +63,21 @@ module ddr3_dfi_phy
     ,output [ 31:0]  dfi_rddata_o
     ,output          dfi_rddata_valid_o
     ,output [  1:0]  dfi_rddata_dnv_o
-    ,output          ddr3_ck_p_o
-    ,output          ddr3_cke_o
-    ,output          ddr3_reset_n_o
+
+    ,output [ 13:0]  ddr3_addr_o
+    ,output [  2:0]  ddr3_ba_o
     ,output          ddr3_ras_n_o
     ,output          ddr3_cas_n_o
     ,output          ddr3_we_n_o
-    ,output          ddr3_cs_n_o
-    ,output [  2:0]  ddr3_ba_o
-    ,output [ 14:0]  ddr3_addr_o
-    ,output          ddr3_odt_o
     ,output [  1:0]  ddr3_dm_o
+    ,output          ddr3_ck_n_o
+    ,output          ddr3_ck_p_o
+    ,output          ddr3_cke_o
+    ,output          ddr3_reset_n_o
+    ,output          ddr3_cs_n_o
+    ,output          ddr3_odt_o
     ,inout [  1:0]  ddr3_dqs_p_io
+    ,inout [  1:0]  ddr3_dqs_n_io
     ,inout [ 15:0]  ddr3_dq_io
 );
 
@@ -100,12 +105,24 @@ altddio_out
   #(
     .WIDTH(1)
     )
-u_pad_ck
+u_pad_ck_p
 (
      .outclock(clk_i)
-    ,.datain_l(0)
-    ,.datain_h(1)
+    ,.datain_l(1'b0)
+    ,.datain_h(1'b1)
     ,.dataout(ddr3_ck_p_o)
+);
+
+altddio_out
+  #(
+    .WIDTH(1)
+    )
+u_pad_ck_n
+(
+     .outclock(clk_i)
+    ,.datain_l(1'b1)
+    ,.datain_h(1'b0)
+    ,.dataout(ddr3_ck_n_o)
 );
 
 
@@ -165,12 +182,12 @@ else
     ba_q <= dfi_bank_i;
 assign ddr3_ba_o        = ba_q;
 
-reg [14:0] addr_q;
+reg [13:0] addr_q;
 always @ (posedge clk_i )
 if (rst_i)
-    addr_q <= 15'b0;
+    addr_q <= 14'b0;
 else
-    addr_q <= dfi_address_i;
+    addr_q <= dfi_address_i[13:0];
 assign ddr3_addr_o      = addr_q;
 
 reg        odt_q;
@@ -221,16 +238,8 @@ wire [1:0] dqs_out_en_n_w = {dqs_out_en_n_q, dqs_out_en_n_q};
 wire [1:0] dqs_out_w;
 wire [1:0] dqs_in_w;
 
-//alt_iobuf my_iobuf 
-   // (.i(internal_sig1), 
-   // .oe(enable_sig),
-   // .o(internal_sig2), 
-   // .io(bidir)); //bidir must be declared as an inout pin
-
-
-
 alt_iobuf
-u_pad_dqs0
+u_pad_dqs0_p
 (
      .i(dqs_out_w[0])
     ,.o(dqs_in_w[0])
@@ -239,12 +248,30 @@ u_pad_dqs0
 );
 
 alt_iobuf
-u_pad_dqs1
+u_pad_dqs1_p
 (
      .i(dqs_out_w[1])
     ,.o(dqs_in_w[1])
     ,.oe(~dqs_out_en_n_w[1])
     ,.io(ddr3_dqs_p_io[1])
+);
+
+alt_iobuf
+u_pad_dqs0_n
+(
+     .i(~dqs_out_w[0])
+    ,.o(dqs_in_w[0])
+    ,.oe(~dqs_out_en_n_w[0])
+    ,.io(ddr3_dqs_n_io[0])
+);
+
+alt_iobuf
+u_pad_dqs1_n
+(
+     .i(~dqs_out_w[1])
+    ,.o(dqs_in_w[1])
+    ,.oe(~dqs_out_en_n_w[1])
+    ,.io(ddr3_dqs_n_io[1])
 );
 
 //-----------------------------------------------------------------
