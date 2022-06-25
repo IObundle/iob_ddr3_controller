@@ -1099,9 +1099,13 @@ endmodule
 
 
 module DELAYG
+  #(
+    DEL_MODE ="USER_DEFINED",
+    DEL_VALUE=0
+    )
   (
-   input  A;
-   output Z;
+   input  A,
+   output Z
    );
    assign Z = A;  
 endmodule
