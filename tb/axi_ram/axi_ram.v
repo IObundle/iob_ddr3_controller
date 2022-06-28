@@ -70,12 +70,10 @@ module axi_ram
 
   
 
-   localparam READ_LAT=3;
-   
    ddr3_axi
      #(
-       .DDR_WRITE_LATENCY(4)
-       ,.DDR_READ_LATENCY(READ_LAT)
+       .DDR_WRITE_LATENCY(3)
+       ,.DDR_READ_LATENCY(3)
        ,.DDR_MHZ(50)
        )
    u_ddr

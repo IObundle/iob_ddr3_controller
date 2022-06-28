@@ -89,7 +89,7 @@ module ddr3_dfi_phy
 
 
    //clock enable
-   reg 	  cke_q;
+   reg cke_q;
    always @ (posedge clk_i, posedge rst_i )
      if (rst_i)
        cke_q <= 1'b0;
@@ -98,7 +98,7 @@ module ddr3_dfi_phy
    assign #(0.4) ddr3_cke_o       = cke_q;
 
    //reset 
-   reg 	  reset_n_q;
+   reg reset_n_q;
    always @ (posedge clk_i, posedge rst_i )
      if (rst_i)
        reset_n_q <= 1'b0;
@@ -197,9 +197,9 @@ reg dqs_out_en_n_q;
 always @ (posedge clk_i )
 if (rst_i)
     dqs_out_en_n_q <= 1'b1;
-else if (wr_valid_q1)
+else if (wr_valid_q1 && !wr_valid_q2)
     dqs_out_en_n_q <= 1'b0;
-else if (!wr_valid_q2)
+else
     dqs_out_en_n_q <= 1'b1;
 
 
